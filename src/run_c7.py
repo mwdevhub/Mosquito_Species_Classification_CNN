@@ -14,18 +14,16 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
-#from torchviz import make_dot
-
 from captum.attr import IntegratedGradients
 from captum.attr import GuidedGradCam
 from captum.attr import LayerGradCam
 
-from cnn.Conv256 import Net256_Conv5_Fc3_B_C7, Net256_Conv5_Fc3_B_RGB_C7
+from nets import Net256_Conv5_Fc3_B_C7, Net256_Conv5_Fc3_B_RGB_C7
 
-from app import utility as uty
-from app import pre_processing as prep
-from app import training as train
-from app import testing as test
+import utility as uty
+import pre_processing as prep
+import training as train
+import testing as test
 
 
 print('\n')
@@ -47,9 +45,9 @@ class Run():
     def __init__(self, changes):
 
         self.CREATING_DATASETS = False
-        self.TRAINING_MODEL = False
+        self.TRAINING_MODEL = True
         self.TESTING_MODEL = True
-        self.TESTING_MODEL_WITH_GRADCAM = True
+        self.TESTING_MODEL_WITH_GRADCAM = False
 
         self.INPUT_DIRECTORY = '01_input_images'
         self.DATASET_DIRECTORY = '02_datasets'
@@ -61,12 +59,12 @@ class Run():
         self.PERCENT_FOR_TESTING = 10
 
         # Use only if CREATING_DATASETS == False else it will be overriden dataset
-        self.TRAINING_DATA_USED = ''#2022_2_12_12-8-5_training_297.npy'
-        self.VALIDATION_DATA_USED = ''#'2022_2_12_12-8-5_validation_3.npy'
-        self.TESTING_DATA_USED = '2022_5_26_20-51-11_testing_119.npy'
+        self.TRAINING_DATA_USED = '2023_7_9_12-56-7_training_28644.npy'#2022_2_12_12-8-5_training_297.npy'
+        self.VALIDATION_DATA_USED = '2023_7_9_12-56-29_validation_112.npy'#'2022_2_12_12-8-5_validation_3.npy'
+        self.TESTING_DATA_USED = '2023_7_9_12-56-29_testing_119.npy' #'2022_5_26_20-51-11_testing_119.npy'
 
         # Use only if TRAINING_MODEL == False else it will be overriden with new model
-        self.MODEL_NAME = '2022_5_26_23-28-9_Net256_Conv5_Fc3_B_RGB_C7_RELU_Adam_MSELoss_e15_b100_lr0.00015.pt'
+        self.MODEL_NAME = '' #'2022_5_26_23-28-9_Net256_Conv5_Fc3_B_RGB_C7_RELU_Adam_MSELoss_e15_b100_lr0.00015.pt'
 
         self.FINAL_RESOLUTION = 256
         self.CROPPINGX = 300
@@ -80,26 +78,12 @@ class Run():
         self.BATCH_SIZE = changes['batch_size']
         self.LEARNING_RATE = changes['learning_rate']
 
-        self.NET = Net256_Conv5_Fc3_B_RGB_C7_RELU() 
+        self.NET = Net256_Conv5_Fc3_B_RGB_C7() 
         self.NET.to(device)
 
         print('\n')
         input_names = ['input']
         output_names = ['output']
-        
-        dummy_X = torch.randn(1, 3, 256, 256).to(device)
-        dynamic_axes= {'input':[1, 3, 256, 256], 'output':[1, 7]}
-
-        torch.onnx.export(self.NET, 
-                          dummy_X, 
-                          "nn.onnx", 
-                          verbose=True, 
-                          input_names=input_names, 
-                          output_names=output_names,
-                          dynamic_axes=dynamic_axes,)
-
-        print('\n')
-        print(6 / 0)
 
         self.OPTIMZER = optim.Adam(self.NET.parameters(), lr=self.LEARNING_RATE)
         self.LOSS_FUNCTION = nn.MSELoss()
@@ -196,7 +180,6 @@ def run_test(changes):
         #input_data = prep.import_input_data_gray(run.log, directory=run.log['INPUT_DIRECTORY'])
         input_data = prep.import_input_data_rgb(run.log, directory=run.log['INPUT_DIRECTORY'])
 
-
         #print('SHOW IMPOTED IMAGE')
         #prep.show_output_images(training_data[0][0][0], training_data[0][0][3] + ' : ' + str(training_data[0][0][1]))
 
@@ -263,7 +246,6 @@ def run_test(changes):
         #train.train_cnn_gray(run, training_data, validation_data)
         train.train_cnn_rgb(run, training_data, validation_data)
 
-        
         print('TRAINING COMPLETED \n')
 
 
@@ -272,12 +254,14 @@ def run_test(changes):
         if run.log['CREATING_DATASETS'] == False:
             testing_data = uty.load_dataset(run.log['TESTING_DATA_USED'], directory=run.log['DATASET_DIRECTORY'])
 
-        print('START TESTING')
-        #test.testing_cnn_rgb(run, testing_data)
-        #test.testing_cnn_gray(run, testing_data)
-        #test.testing_cnn_gradcam_gray(run, testing_data)
-        test.testing_cnn_gradcam_rgb(run, testing_data)
-
+        if run.log['TESTING_MODEL_WITH_GRADCAM'] == True:
+            print('START TESTING WITH GRAD CAM')
+            #test.testing_cnn_gradcam_gray(run, testing_data)
+            test.testing_cnn_gradcam_rgb(run, testing_data)
+        else:
+            print('START TESTING')
+            #test.testing_cnn_gray(run, testing_data)
+            test.testing_cnn_rgb(run, testing_data)
 
         print('END TESTING')
 
@@ -288,7 +272,7 @@ def run_test(changes):
 def run_tests():
 
     change_list=[
-                 {'epochs': 15, 'num_aug': 30, 'learning_rate': 0.00015, 'batch_size': 100},
+                 {'epochs': 3, 'num_aug': 30, 'learning_rate': 0.00015, 'batch_size': 100},
                  #{'epochs': 5, 'num_aug': 30, 'learning_rate': 0.0002, 'batch_size': 100},
                  #{'epochs': 5, 'num_aug': 30, 'learning_rate': 0.00025, 'batch_size': 100},
                 ]
@@ -296,3 +280,8 @@ def run_tests():
     for changes in change_list:
         run_test(changes)
         torch.cuda.empty_cache()
+
+
+
+if __name__ == '__main__':
+    run_tests()

@@ -6,8 +6,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
-from app import utility as uty
-from app import pre_processing as prep
+import utility as uty
+import pre_processing as prep
 
 if torch.cuda.is_available():
     device = torch.device('cuda:0')

@@ -18,11 +18,12 @@ from captum.attr import IntegratedGradients
 from captum.attr import GuidedGradCam
 from captum.attr import LayerGradCam
 
-from cnn.Conv256 import Net256_Conv5_Fc3_B_C2, Net256_Conv5_Fc3_B_RGB_C2
-from app import utility as uty
-from app import pre_processing as prep
-from app import training as train
-from app import testing as test
+from nets import Net256_Conv5_Fc3_B_C2, Net256_Conv5_Fc3_B_RGB_C2
+
+import utility as uty
+import pre_processing as prep
+import training as train
+import testing as test
 
 
 print('\n')
@@ -48,7 +49,7 @@ class Run():
         self.TESTING_MODEL = True
         self.TESTING_MODEL_WITH_GRADCAM = True
 
-        self.INPUT_DIRECTORY = '00_Input_Known_Unknown'#'01_input_images'
+        self.INPUT_DIRECTORY = '00_input_Aedes_NoAedes'#'01_input_images'
         self.DATASET_DIRECTORY = '02_datasets'
         self.MODEL_DIRECTROY = '03_trained_models'
         self.OUTPUT_DIRECTORY = '04_output'
@@ -79,6 +80,7 @@ class Run():
 
         self.NET = Net256_Conv5_Fc3_B_C2()
         self.NET.to(device)
+
 
         self.OPTIMZER = optim.Adam(self.NET.parameters(), lr=self.LEARNING_RATE)
         self.LOSS_FUNCTION = nn.MSELoss()
@@ -239,7 +241,6 @@ def run_test(changes):
         train.train_cnn_gray(run, training_data, validation_data)
         #train.train_cnn_rgb(run, training_data, validation_data)
 
-        
         print('TRAINING COMPLETED \n')
 
 
@@ -248,11 +249,15 @@ def run_test(changes):
         if run.log['CREATING_DATASETS'] == False:
             testing_data = uty.load_dataset(run.log['TESTING_DATA_USED'], directory=run.log['DATASET_DIRECTORY'])
 
-        print('START TESTING')
-        #test.testing_cnn_rgb(run, testing_data)
-        #test.testing_cnn_gray(run, testing_data)
-        test.testing_cnn_gradcam_gray(run, testing_data)
-        #test.testing_cnn_gradcam_rgb(run, testing_data)
+        if run.log['TESTING_MODEL_WITH_GRADCAM'] == True:
+            print('START TESTING WITH GRAD CAM')
+            test.testing_cnn_gradcam_gray(run, testing_data)
+            #test.testing_cnn_gradcam_rgb(run, testing_data)
+        else:
+            print('START TESTING')
+            #test.testing_cnn_rgb(run, testing_data)
+            #test.testing_cnn_gray(run, testing_data)
+
         print('END TESTING')
 
     uty.save_log_file(run.log)
@@ -260,12 +265,16 @@ def run_test(changes):
 
 def run_tests():
     change_list=[
-                 {'epochs': 5, 'num_aug': 30, 'learning_rate': 0.0001, 'batch_size': 100},
-                 {'epochs': 5, 'num_aug': 30, 'learning_rate': 0.00015, 'batch_size': 100},
-                 {'epochs': 5, 'num_aug': 30, 'learning_rate': 0.0002, 'batch_size': 100},
-                 {'epochs': 5, 'num_aug': 30, 'learning_rate': 0.00025, 'batch_size': 100},
+                 {'epochs': 1, 'num_aug': 30, 'learning_rate': 0.0001, 'batch_size': 100},
+                #  {'epochs': 5, 'num_aug': 30, 'learning_rate': 0.00015, 'batch_size': 100},
+                #  {'epochs': 5, 'num_aug': 30, 'learning_rate': 0.0002, 'batch_size': 100},
+                #  {'epochs': 5, 'num_aug': 30, 'learning_rate': 0.00025, 'batch_size': 100},
                 ]
 
     for changes in change_list:
         run_test(changes)
         torch.cuda.empty_cache()
+
+
+if __name__ == '__main__':
+    run_tests()

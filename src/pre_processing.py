@@ -23,7 +23,7 @@ def import_input_data_gray(log, directory='01_input_images'):
         path = os.path.join(directory, label)
         sample_class = []
         class_count[label] = 0
-        for image_index in range(20):  # range(smallest_sample_num):  # range(20))
+        for image_index in range(smallest_sample_num):
             image_name = os.listdir(path)[image_index]
             image_path = os.path.join(path, image_name)
             image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
