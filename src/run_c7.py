@@ -42,8 +42,10 @@ else:
 
 class Run():
 
-    def __init__(self, changes):
-
+    def __init__(self, changes = {'epochs': 3, 'num_aug': 30, 'learning_rate': 0.00015, 'batch_size': 100}:
+        # Set the parameter for a test run using the "run_test" function. The parameter "changes" can be used to run several test with varying parameters see "run_tests" function.
+        # To run one test use "run_tests" with one entry.
+        
         self.CREATING_DATASETS = False
         self.TRAINING_MODEL = True
         self.TESTING_MODEL = True
@@ -58,13 +60,13 @@ class Run():
         self.PERCENT_FOR_VALIDATION = 10
         self.PERCENT_FOR_TESTING = 10
 
-        # Use only if CREATING_DATASETS == False else it will be overriden dataset
-        self.TRAINING_DATA_USED = '2023_7_9_12-56-7_training_28644.npy'#2022_2_12_12-8-5_training_297.npy'
-        self.VALIDATION_DATA_USED = '2023_7_9_12-56-29_validation_112.npy'#'2022_2_12_12-8-5_validation_3.npy'
-        self.TESTING_DATA_USED = '2023_7_9_12-56-29_testing_119.npy' #'2022_5_26_20-51-11_testing_119.npy'
+        # Use only if "CREATING_DATASETS == False" else the dataset will be overriden.
+        self.TRAINING_DATA_USED = ''
+        self.VALIDATION_DATA_USED = ''
+        self.TESTING_DATA_USED = ''
 
-        # Use only if TRAINING_MODEL == False else it will be overriden with new model
-        self.MODEL_NAME = '' #'2022_5_26_23-28-9_Net256_Conv5_Fc3_B_RGB_C7_RELU_Adam_MSELoss_e15_b100_lr0.00015.pt'
+        # Use only if "TRAINING_MODEL == False" else it the model will be overriden with new model.
+        self.MODEL_NAME = ''
 
         self.FINAL_RESOLUTION = 256
         self.CROPPINGX = 300
@@ -92,6 +94,8 @@ class Run():
 
 
     def create_log_dict(self):
+        # Creates a log dictionary to track settings, training and testing steps. The log is updated during a run and saved afterwards.
+        
         timestamp = uty.timestamp()
         log = {
                 'NAME': f'{timestamp}_mcc',
@@ -163,7 +167,8 @@ class Run():
         return log
 
 
-def run_test(changes):
+def run_test():
+    # Note: To switch between gray scale and rgb images un/comment the according functions
 
     print(f'\n\nRUN {changes}')
 
@@ -180,9 +185,6 @@ def run_test(changes):
         #input_data = prep.import_input_data_gray(run.log, directory=run.log['INPUT_DIRECTORY'])
         input_data = prep.import_input_data_rgb(run.log, directory=run.log['INPUT_DIRECTORY'])
 
-        #print('SHOW IMPOTED IMAGE')
-        #prep.show_output_images(training_data[0][0][0], training_data[0][0][3] + ' : ' + str(training_data[0][0][1]))
-
         print('DATASET CREATION')
         training_data, validation_data, testing_data = prep.split_input_data(run.log,
                                                                              input_data,
@@ -198,11 +200,6 @@ def run_test(changes):
                                           cropping_x=run.CROPPINGX,
                                           cropping_y=run.CROPPINGY,
                                           resolution=run.FINAL_RESOLUTION)
-
-
-
-        #print('SHOW PREPED IMAGE')
-        #prep.show_output_images(training_data[0][0], training_data[0][3] + ' : ' + str(training_data[0][1]))
 
         validation_data=prep.prepare_images(run.log,
                                           validation_data,
@@ -224,9 +221,6 @@ def run_test(changes):
 
         training_data=prep.shuffle_dataset(training_data)
         validation_data=prep.shuffle_dataset(validation_data)
-
-        #print('SHOW AUGMENTED IMAGE')
-        #prep.show_output_images(training_data[0][0], training_data[0][3] + ' : ' + str(training_data[0][1]))
 
         print('SAVING DATASETS')
         uty.save_dataset(run.log, training_data, kind='training', directory=run.log['DATASET_DIRECTORY'])
@@ -270,7 +264,7 @@ def run_test(changes):
 
 
 def run_tests():
-
+    # Define the number of runs and parameter that should change here. Each dict in the list represets one test run.
     change_list=[
                  {'epochs': 3, 'num_aug': 30, 'learning_rate': 0.00015, 'batch_size': 100},
                  #{'epochs': 5, 'num_aug': 30, 'learning_rate': 0.0002, 'batch_size': 100},
@@ -280,8 +274,6 @@ def run_tests():
     for changes in change_list:
         run_test(changes)
         torch.cuda.empty_cache()
-
-
 
 if __name__ == '__main__':
     run_tests()
