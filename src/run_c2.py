@@ -44,6 +44,7 @@ class Run():
 
     def __init__(self, changes):
         # Set the parameter for a test run using the "run_test" function. The parameter "changes" can be used to run several test with varying parameters see "run_tests" function.
+        # To run one test use "run_tests" with one entry.
         
         self.CREATING_DATASETS = True
         self.TRAINING_MODEL = True
@@ -261,6 +262,8 @@ def run_test(changes):
 
 
 def run_tests():
+    # Define the number of runs and parameter that should change here. Each dict in the list represets one test run.
+    
     change_list=[
                  {'epochs': 1, 'num_aug': 30, 'learning_rate': 0.0001, 'batch_size': 100},
                 #  {'epochs': 5, 'num_aug': 30, 'learning_rate': 0.00015, 'batch_size': 100},
