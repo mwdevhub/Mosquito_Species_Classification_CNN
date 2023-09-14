@@ -43,7 +43,8 @@ else:
 class Run():
 
     def __init__(self, changes):
-
+        # Set the parameter for a test run using the "run_test" function. The parameter "changes" can be used to run several test with varying parameters see "run_tests" function.
+        
         self.CREATING_DATASETS = True
         self.TRAINING_MODEL = True
         self.TESTING_MODEL = True
@@ -58,12 +59,12 @@ class Run():
         self.PERCENT_FOR_VALIDATION = 10
         self.PERCENT_FOR_TESTING = 10
 
-        # Use only if CREATING_DATASETS == False else it will be overriden dataset
-        self.TRAINING_DATA_USED = ''#2022_2_12_12-8-5_training_297.npy'
-        self.VALIDATION_DATA_USED = ''#'2022_2_12_12-8-5_validation_3.npy'
+        # Use only if "CREATING_DATASETS == False" else the dataset will be overriden
+        self.TRAINING_DATA_USED = '' 
+        self.VALIDATION_DATA_USED = ''
         self.TESTING_DATA_USED = ''
 
-        # Use only if TRAINING_MODEL == False else it will be overriden with new model
+        # Use only if "TRAINING_MODEL == False" else it the model will be overriden with new model
         self.MODEL_NAME = ''
 
         self.FINAL_RESOLUTION = 256
@@ -88,9 +89,8 @@ class Run():
         self.log = self.create_log_dict()
 
     def create_log_dict(self):
-
+        # Creates a log file to track settings, training and testing steps. The log is updated during a run and saved afterwards.
         timestamp = uty.timestamp()
-
         log = {
                 'NAME': f'{timestamp}_mcc',
                 'START_TIME': timestamp,
@@ -177,8 +177,6 @@ def run_test(changes):
         print('DATA IMPORT')
         input_data = prep.import_input_data_gray(run.log, directory=run.log['INPUT_DIRECTORY'])
 
-        #print('SHOW IMPOTED IMAGE')
-        #prep.show_output_images(training_data[0][0][0], training_data[0][0][3] + ' : ' + str(training_data[0][0][1]))
 
         print('DATASET CREATION')
         training_data, validation_data, testing_data = prep.split_input_data(run.log,
@@ -186,7 +184,7 @@ def run_test(changes):
                                                                              training=run.PERCENT_FOR_TRAINING,
                                                                              validation=run.PERCENT_FOR_VALIDATION,
                                                                              testing=run.PERCENT_FOR_TESTING)
-
+        
         uty.double_check_data(training_data, validation_data, testing_data)
 
         print('DATA PREPARATION')
@@ -196,8 +194,6 @@ def run_test(changes):
                                           cropping_y=run.CROPPINGY,
                                           resolution=run.FINAL_RESOLUTION)
 
-        #print('SHOW PREPED IMAGE')
-        #prep.show_output_images(training_data[0][0], training_data[0][3] + ' : ' + str(training_data[0][1]))
 
         validation_data=prep.prepare_images(run.log,
                                           validation_data,
