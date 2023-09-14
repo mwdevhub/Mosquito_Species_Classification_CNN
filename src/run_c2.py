@@ -176,6 +176,7 @@ def run_test(changes):
 
         print('DATA IMPORT')
         input_data = prep.import_input_data_gray(run.log, directory=run.log['INPUT_DIRECTORY'])
+        #input_data = prep.import_input_data_rgb(run.log, directory=run.log['INPUT_DIRECTORY'])
 
 
         print('DATASET CREATION')
