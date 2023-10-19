@@ -83,7 +83,9 @@ class Run():
         self.NET = Net256_Conv5_Fc3_B_C2()
         self.NET.to(device)
 
-
+        #Regarding reviewer 1 comment: L2 regularization
+        #ToDo: Add regularization in form of weight decay 
+        #self.OPTIMZER = optim.Adam(self.NET.parameters(), lr=self.LEARNING_RATE, weight_decay=0.05) 
         self.OPTIMZER = optim.Adam(self.NET.parameters(), lr=self.LEARNING_RATE)
         self.LOSS_FUNCTION = nn.MSELoss()
 
