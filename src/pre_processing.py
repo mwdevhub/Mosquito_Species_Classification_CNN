@@ -4,7 +4,10 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
-
+#Regarding reviewer 1 comment: Random Seed
+# ToDo: ADD RANDOM SEED
+# random.seed(10)
+        
 def import_input_data_gray(log, directory='01_input_images'):
     input_data = []
     class_count = {}
@@ -123,6 +126,12 @@ def rotateImage(image, angle):
     result = cv2.warpAffine(image, rot_mat, image.shape[1::-1], flags=cv2.INTER_LINEAR)
     return result
 
+#Regarding Reviewer 1 comment on GradCam and the Model learning wing size
+#ToDo: write function to augment images via zoom
+#def zoomImage(image, zoom):
+#    return cv2.resize(image, None, fx=zoom_factor, fy=zoom_factor)
+    
+
 
 def data_augmentation(log, dataset, num_of_augmentations=10, max_shift=20, max_rotation=15):
     print(f'TOTAL NUMBER OF TRAINING SAMPLES BEFORE AUGMENTATION: {len(dataset)}')
@@ -133,6 +142,7 @@ def data_augmentation(log, dataset, num_of_augmentations=10, max_shift=20, max_r
             M = np.float32([[1, 0, random.randint(max_shift * -1, max_shift)], [0, 1, random.randint(max_shift * -1, max_shift)]])
             aug_image = cv2.warpAffine(image, M, (image.shape[1], image.shape[0]))
             aug_image = rotateImage(aug_image, random.uniform(max_rotation * -1, max_rotation))
+            #aug_image = zoomImage(aug_image, random.uniform(0.5, 2))
             augmented_dataset.append([aug_image, sample[1], sample[2], sample[3][:-4] + f' Aug {i}' + sample[3][-4:]])
     augmented_dataset += dataset
     print(f'TOTAL NUMBER OF TRAINING SAMPLES AFTER AUGMENTATION: {len(augmented_dataset)}')
