@@ -184,3 +184,36 @@ class Net256_Conv5_Fc3_B_RGB_C7(nn.Module):
         x = self.fc3(x)
 
         return F.softmax(x, dim=1)
+
+class hyperband_model(nn.Module):
+    def __init__(self):
+        super().__init__()
+        # I am not sure how those dimension behvae for you different test
+        # The number here is based on the tensorflow value, maybe you have to change this
+        # The numbers you are using a singificantly smaller 
+        self.to_linear = 167088
+        self.conv1 = nn.Conv2d(3, 32, 3)
+        self.conv2 = nn.Conv2d(32, 32, 3)
+        self.conv3 = nn.Conv2d(32, 64, 5)
+        self.conv4 = nn.Conv2d(64, 64, 5)
+        self.fc1 = nn.Linear(self.to_linear, 11)
+
+        self.dropout = nn.Dropout(0.4)
+        
+    def forward(self, x):
+        x = self.conv1(x)
+        x = F.relu(x)
+        x = self.conv2(x)
+        x = F.relu(x)
+        x = F.max_pool2d(x, (2, 2))
+
+        x = self.conv3(x)
+        x = F.relu(x)
+        x = self.conv4(x)
+        x = F.relu(x)
+        x = F.max_pool2d(x, (2, 2))
+
+        x = x.flatten(start_dim=1, end_dim=- 1)
+        x = self.dropout(x)
+        x = F.softmax(self.fc1(x), dim=1)
+        return x

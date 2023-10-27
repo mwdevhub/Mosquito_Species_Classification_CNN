@@ -84,10 +84,11 @@ class Run():
         self.NET.to(device)
 
         #Regarding reviewer 1 comment: L2 regularization
-        #ToDo: Add regularization in form of weight decay 
-        #self.OPTIMZER = optim.Adam(self.NET.parameters(), lr=self.LEARNING_RATE, weight_decay=0.05) 
-        self.OPTIMZER = optim.Adam(self.NET.parameters(), lr=self.LEARNING_RATE)
-        self.LOSS_FUNCTION = nn.MSELoss()
+        #I commmented your original code and exchanged it with mine
+        self.OPTIMZER = optim.AdamW(self.NET.parameters(), lr=self.LEARNING_RATE, weight_decay=0.05) 
+        #self.OPTIMZER = optim.Adam(self.NET.parameters(), lr=self.LEARNING_RATE)
+        self.LOSS_FUNCTION = nn.CrossEntropyLoss()
+        #self.LOSS_FUNCTION = nn.MSELoss()
 
         self.log = self.create_log_dict()
 
@@ -262,7 +263,7 @@ def run_test(changes):
 
     uty.save_log_file(run.log)
 
-
+    # I used 0.001 for learning rate and 32 for batch_size you might wanna adapt to this
 def run_tests():
     # Define the number of runs and parameter that should change here. Each dict in the list represets one test run.
     

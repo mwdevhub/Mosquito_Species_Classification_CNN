@@ -41,7 +41,7 @@ else:
 
 
 class Run():
-
+        # I used 0.001 for learning rate and 32 for batch_size you might wanna adapt to this
     def __init__(self, changes = {'epochs': 3, 'num_aug': 30, 'learning_rate': 0.00015, 'batch_size': 100}:
         # Set the parameter for a test run using the "run_test" function. The parameter "changes" can be used to run several test with varying parameters see "run_tests" function.
         # To run one test use "run_tests" with one entry.
@@ -87,8 +87,13 @@ class Run():
         input_names = ['input']
         output_names = ['output']
 
-        self.OPTIMZER = optim.Adam(self.NET.parameters(), lr=self.LEARNING_RATE)
-        self.LOSS_FUNCTION = nn.MSELoss()
+        #Regarding reviewer 1 comment: L2 regularization
+        #I commmented your original code and exchanged it with mine
+        self.OPTIMZER = optim.AdamW(self.NET.parameters(), lr=self.LEARNING_RATE, weight_decay=0.05) 
+        #self.OPTIMZER = optim.Adam(self.NET.parameters(), lr=self.LEARNING_RATE)
+        self.LOSS_FUNCTION = nn.CrossEntropyLoss()
+        #self.LOSS_FUNCTION = nn.MSELoss()
+
 
         self.log = self.create_log_dict()
 
