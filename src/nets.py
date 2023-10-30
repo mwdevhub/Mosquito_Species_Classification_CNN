@@ -185,18 +185,18 @@ class Net256_Conv5_Fc3_B_RGB_C7(nn.Module):
 
         return F.softmax(x, dim=1)
 
-class hyperband_model(nn.Module):
+class Hyperband_Model(nn.Module):
     def __init__(self):
         super().__init__()
         # I am not sure how those dimension behvae for you different test
         # The number here is based on the tensorflow value, maybe you have to change this
         # The numbers you are using a singificantly smaller 
-        self.to_linear = 167088
+        self.to_linear = 64 * 59 * 59 #torch.Size([100, 64, 59, 59])
         self.conv1 = nn.Conv2d(3, 32, 3)
         self.conv2 = nn.Conv2d(32, 32, 3)
         self.conv3 = nn.Conv2d(32, 64, 5)
         self.conv4 = nn.Conv2d(64, 64, 5)
-        self.fc1 = nn.Linear(self.to_linear, 11)
+        self.fc1 = nn.Linear(self.to_linear, 7)
 
         self.dropout = nn.Dropout(0.4)
         
