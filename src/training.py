@@ -24,11 +24,14 @@ def train_cnn_rgb(run, training_data, validation_data):
     epochs = run.EPOCHS
     batch_size = run.BATCH_SIZE
     LEARNING_RATE = run.LEARNING_RATE
+    WEIGHT_DECAY = run.WEIGHT_DECAY
 
     OPTIMZER = run.OPTIMZER
     LOSS_FUNCTION = run.LOSS_FUNCTION
 
     log['TRAINING_START_TIME'] = uty.timestamp()
+
+    print(uty.timestamp())
 
     r = 6
 
@@ -54,7 +57,7 @@ def train_cnn_rgb(run, training_data, validation_data):
 
     print(epochs)
     for epoch in range(epochs):
-        print(f'EPOCH {epoch} STARTED')
+        print(f'EPOCH {epoch} STARTED AT {uty.timestamp()}')
 
         for i in range(0, len(train_x), batch_size):
             batch_x = train_x[i:i + batch_size].view(-1, 3, size_x, size_y).to(device)
@@ -91,6 +94,7 @@ def train_cnn_rgb(run, training_data, validation_data):
     log['EPOCHS'] = epochs
     log['BATCH_SIZE'] = batch_size
     log['LEARNING_RATE'] = LEARNING_RATE
+    log['WEIGHT_DECAY'] = WEIGHT_DECAY
 
 
 def train_cnn_gray(run, training_data, validation_data):
