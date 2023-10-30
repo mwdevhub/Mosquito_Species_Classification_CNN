@@ -18,7 +18,7 @@ from captum.attr import IntegratedGradients
 from captum.attr import GuidedGradCam
 from captum.attr import LayerGradCam
 
-from nets import Net256_Conv5_Fc3_B_C7, Net256_Conv5_Fc3_B_RGB_C7
+from nets import Net256_Conv5_Fc3_B_C7, Net256_Conv5_Fc3_B_RGB_C7, Hyperband_Model
 
 import utility as uty
 import pre_processing as prep
@@ -41,35 +41,36 @@ else:
 
 
 class Run():
-        # I used 0.001 for learning rate and 32 for batch_size you might wanna adapt to this
-    def __init__(self, changes = {'epochs': 3, 'num_aug': 30, 'learning_rate': 0.00015, 'batch_size': 100}:
+
+    def __init__(self, changes = {'epochs': 3, 'num_aug': 30, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100}):
         # Set the parameter for a test run using the "run_test" function. The parameter "changes" can be used to run several test with varying parameters see "run_tests" function.
         # To run one test use "run_tests" with one entry.
         
-        self.CREATING_DATASETS = False
+        self.CREATING_DATASETS = True
         self.TRAINING_MODEL = True
         self.TESTING_MODEL = True
-        self.TESTING_MODEL_WITH_GRADCAM = False
+        self.TESTING_MODEL_WITH_GRADCAM = True
 
-        self.INPUT_DIRECTORY = '01_input_images'
+        self.INPUT_DIRECTORY = '01_input_split'
         self.DATASET_DIRECTORY = '02_datasets'
         self.MODEL_DIRECTROY = '03_trained_models'
         self.OUTPUT_DIRECTORY = '04_output'
 
-        self.PERCENT_FOR_TRAINING = 80
-        self.PERCENT_FOR_VALIDATION = 10
-        self.PERCENT_FOR_TESTING = 10
+        self.PERCENT_FOR_TRAINING = 70
+        self.PERCENT_FOR_VALIDATION = 15
+        self.PERCENT_FOR_TESTING = 15
 
         # Use only if "CREATING_DATASETS == False" else the dataset will be overriden.
-        self.TRAINING_DATA_USED = ''
-        self.VALIDATION_DATA_USED = ''
+        self.TRAINING_DATA_USED = '' #'2023_10_26_20-2-12_training_28644.npy' 
+        self.VALIDATION_DATA_USED = '' #'2023_10_26_20-4-34_validation_112.npy'
         self.TESTING_DATA_USED = ''
+
 
         # Use only if "TRAINING_MODEL == False" else it the model will be overriden with new model.
         self.MODEL_NAME = ''
 
         self.FINAL_RESOLUTION = 256
-        self.CROPPINGX = 300
+        self.CROPPINGX = 620
         self.CROPPINGY = 0
 
         self.NUMBER_OF_AUGMENTATION = changes['num_aug']
@@ -79,21 +80,20 @@ class Run():
         self.EPOCHS = changes['epochs']
         self.BATCH_SIZE = changes['batch_size']
         self.LEARNING_RATE = changes['learning_rate']
+        self.WEIGHT_DECAY = changes['weight_decay']
 
-        self.NET = Net256_Conv5_Fc3_B_RGB_C7() 
+        self.NET = Hyperband_Model() #
         self.NET.to(device)
 
         print('\n')
         input_names = ['input']
-        output_names = ['output']
+        output_names = ['output']git
 
         #Regarding reviewer 1 comment: L2 regularization
-        #I commmented your original code and exchanged it with mine
-        self.OPTIMZER = optim.AdamW(self.NET.parameters(), lr=self.LEARNING_RATE, weight_decay=0.05) 
+        #ToDo: Add regularization in form of weight decay 
+        self.OPTIMZER = optim.Adam(self.NET.parameters(), lr=self.LEARNING_RATE, weight_decay=self.WEIGHT_DECAY) 
         #self.OPTIMZER = optim.Adam(self.NET.parameters(), lr=self.LEARNING_RATE)
-        self.LOSS_FUNCTION = nn.CrossEntropyLoss()
-        #self.LOSS_FUNCTION = nn.MSELoss()
-
+        self.LOSS_FUNCTION = nn.MSELoss()
 
         self.log = self.create_log_dict()
 
@@ -127,7 +127,7 @@ class Run():
                 'VALIDATION_DATA_USED': self.VALIDATION_DATA_USED,
                 'TESTING_DATA_USED': self.TESTING_DATA_USED,
                 'NUMBER_OF_CLASSES': 0,
-                'CLASS_LABELS': [],
+                'CLASS_LABELS': ['Ae albopictus right', 'Ae cinereus', 'Ae communis', 'Ae punctor', 'Ae rusticus', 'Ae sticticus', 'Ae vexans'],
                 'DATA_DISTRIBUTION_PER_CLASS': [],
 
                 'NUMBER_OF_TRAINING_SAMPLES': 0,
@@ -162,6 +162,7 @@ class Run():
                 'EPOCHS': 'k.a.',
                 'BATCH_SIZE': 'k.a.',
                 'LEARNING_RATE': 'k.a.',
+                'WEIGHT_DECAY': 'k.a.',
 
                 'NUMBER_OF_TESTS': 0,
 
@@ -172,7 +173,7 @@ class Run():
         return log
 
 
-def run_test():
+def run_test(changes):
     # Note: To switch between gray scale and rgb images un/comment the according functions
 
     print(f'\n\nRUN {changes}')
@@ -182,20 +183,32 @@ def run_test():
 
     uty.create_output_folder(run.log)
 
-    uty.import_labels(run.log, directory=run.log['INPUT_DIRECTORY'])
-
+    
     if run.log['CREATING_DATASETS'] == True:
 
         print('DATA IMPORT')
         #input_data = prep.import_input_data_gray(run.log, directory=run.log['INPUT_DIRECTORY'])
-        input_data = prep.import_input_data_rgb(run.log, directory=run.log['INPUT_DIRECTORY'])
+        #input_data = prep.import_input_data_rgb(run.log, directory=run.log['INPUT_DIRECTORY'])
 
+
+        testing_data = prep.import_input_data_new_rgb(run.log, directory=run.log['INPUT_DIRECTORY'], folder='testing')
+        #testing_data = prep.prepare_images(run.log, testing_data, cropping_x=run.CROPPINGX, cropping_y=run.CROPPINGY, resolution=run.FINAL_RESOLUTION)
+
+        training_data = prep.import_input_data_new_rgb(run.log, directory=run.log['INPUT_DIRECTORY'], folder='train')
+        #training_data = prep.prepare_images(run.log, training_data, cropping_x=run.CROPPINGX, cropping_y=run.CROPPINGY, resolution=run.FINAL_RESOLUTION)
+
+        validation_data = prep.import_input_data_new_rgb(run.log, directory=run.log['INPUT_DIRECTORY'], folder='validation')
+        #validation_data = prep.prepare_images(run.log, validation_data, cropping_x=run.CROPPINGX, cropping_y=run.CROPPINGY, resolution=run.FINAL_RESOLUTION)
+
+        
         print('DATASET CREATION')
-        training_data, validation_data, testing_data = prep.split_input_data(run.log,
-                                                                             input_data,
-                                                                             training=run.PERCENT_FOR_TRAINING,
-                                                                             validation=run.PERCENT_FOR_VALIDATION,
-                                                                             testing=run.PERCENT_FOR_TESTING)
+        #training_data, validation_data, testing_data = prep.split_input_data(run.log,
+        #                                                                     input_data,
+        #                                                                     training=run.PERCENT_FOR_TRAINING,
+        #                                                                     validation=run.PERCENT_FOR_VALIDATION,
+        #                                                                    testing=run.PERCENT_FOR_TESTING)
+
+
 
         uty.double_check_data(training_data, validation_data, testing_data)
 
@@ -222,7 +235,8 @@ def run_test():
                                          training_data,
                                          num_of_augmentations=run.NUMBER_OF_AUGMENTATION,
                                          max_shift=run.MAXIMUM_SHIFT,
-                                         max_rotation=run.MAXIMUM_ROTATION)
+                                         max_rotation=run.MAXIMUM_ROTATION,
+                                         resolution=run.FINAL_RESOLUTION)
 
         training_data=prep.shuffle_dataset(training_data)
         validation_data=prep.shuffle_dataset(validation_data)
@@ -271,9 +285,9 @@ def run_test():
 def run_tests():
     # Define the number of runs and parameter that should change here. Each dict in the list represets one test run.
     change_list=[
-                 {'epochs': 3, 'num_aug': 30, 'learning_rate': 0.00015, 'batch_size': 100},
-                 #{'epochs': 5, 'num_aug': 30, 'learning_rate': 0.0002, 'batch_size': 100},
-                 #{'epochs': 5, 'num_aug': 30, 'learning_rate': 0.00025, 'batch_size': 100},
+                 {'epochs': 15, 'num_aug': 5, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
+                 #{'epochs': 5, 'num_aug': 5, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
+                 #{'epochs': 5, 'num_aug': 5, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
                 ]
 
     for changes in change_list:
