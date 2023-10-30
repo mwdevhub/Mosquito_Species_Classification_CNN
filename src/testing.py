@@ -120,7 +120,7 @@ def testing_cnn_gradcam_gray(run, testing_data):
         output = run.NET(test_x[i].view(-1, 1, size_x, size_y).to(device))
         predicted_class_idx = torch.argmax(output)
 
-        ggc = GuidedGradCam(run.NET, run.NET.conv5)
+        ggc = GuidedGradCam(run.NET, run.NET.conv4)
         input = test_x[i].view(-1, 1, size_x, size_y).to(device)
 
         conf_matrix[f'{real_class_idx}: {real_class_label}'][predicted_class_idx] += 1
@@ -168,12 +168,12 @@ def testing_cnn_gradcam_gray(run, testing_data):
         image_name = f'LGC_Conv4_{test_image_names[i][:-4]}_P_{predicted_class_idx}_R_{real_class_idx}_GC_{guided_class_idx}.jpg'
         prep.save_output_image(run.log, image, image_name)
 
-        lgc = LayerGradCam(run.NET, run.NET.conv5)
+        lgc = LayerGradCam(run.NET, run.NET.conv4)
         attribution = lgc.attribute(input, guided_class_idx)
 
-        image = prep.prepare_output_image_gray(attribution)
-        image_name = f'LGC_Conv5_{test_image_names[i][:-4]}_P_{predicted_class_idx}_R_{real_class_idx}_GC_{guided_class_idx}.jpg'
-        prep.save_output_image(run.log, image, image_name)
+        #image = prep.prepare_output_image_gray(attribution)
+        #image_name = f'LGC_Conv5_{test_image_names[i][:-4]}_P_{predicted_class_idx}_R_{real_class_idx}_GC_{guided_class_idx}.jpg'
+        #prep.save_output_image(run.log, image, image_name)
 
         number_of_tests += 1
 
@@ -289,15 +289,15 @@ def testing_cnn_gradcam_rgb(run, testing_data):
         real_class_idx = torch.argmax(test_y[i]).to(device)
         real_class_label = test_labels[i]
 
-        print(test_x[i].view(-1, 3, size_x, size_y).to(device).size())
+        #print(test_x[i].view(-1, 3, size_x, size_y).to(device).size())
 
         output = run.NET(test_x[i].view(-1, 3, size_x, size_y).to(device))
 
-        print(output.to(device).size())
+        #print(output.to(device).size())
 
         predicted_class_idx = torch.argmax(output)
 
-        ggc = GuidedGradCam(run.NET, run.NET.conv5)
+        ggc = GuidedGradCam(run.NET, run.NET.conv4)
         input = test_x[i].view(-1, 3, size_x, size_y).to(device)
 
         conf_matrix[f'{real_class_idx}: {real_class_label}'][predicted_class_idx] += 1
@@ -345,12 +345,12 @@ def testing_cnn_gradcam_rgb(run, testing_data):
         image_name = f'LGC_Conv4_{test_image_names[i][:-4]}_P_{predicted_class_idx}_R_{real_class_idx}_GC_{guided_class_idx}.jpg'
         prep.save_output_image(run.log, image, image_name)
 
-        lgc = LayerGradCam(run.NET, run.NET.conv5)
-        attribution = lgc.attribute(input, guided_class_idx)
+        #lgc = LayerGradCam(run.NET, run.NET.conv5)
+        #attribution = lgc.attribute(input, guided_class_idx)
 
-        image = prep.prepare_output_image_rgb(attribution)
-        image_name = f'LGC_Conv5_{test_image_names[i][:-4]}_P_{predicted_class_idx}_R_{real_class_idx}_GC_{guided_class_idx}.jpg'
-        prep.save_output_image(run.log, image, image_name)
+        #image = prep.prepare_output_image_rgb(attribution)
+        #image_name = f'LGC_Conv5_{test_image_names[i][:-4]}_P_{predicted_class_idx}_R_{real_class_idx}_GC_{guided_class_idx}.jpg'
+        #prep.save_output_image(run.log, image, image_name)
 
         number_of_tests += 1
 
