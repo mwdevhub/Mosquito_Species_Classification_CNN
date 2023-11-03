@@ -18,7 +18,7 @@ from captum.attr import IntegratedGradients
 from captum.attr import GuidedGradCam
 from captum.attr import LayerGradCam
 
-from nets import Net256_Conv5_Fc3_B_C7, Net256_Conv5_Fc3_B_RGB_C7, Hyperband_Model
+from nets import Net256_Conv5_Fc3_B_C7, Net256_Conv5_Fc3_B_RGB_C7, Hyperband_Model, Net256_Conv4_Fc1_B_RGB_C7
 
 import utility as uty
 import pre_processing as prep
@@ -82,12 +82,12 @@ class Run():
         self.LEARNING_RATE = changes['learning_rate']
         self.WEIGHT_DECAY = changes['weight_decay']
 
-        self.NET = Hyperband_Model() #
+        self.NET = Net256_Conv4_Fc1_B_RGB_C7() #Hyperband_Model() #
         self.NET.to(device)
 
         print('\n')
         input_names = ['input']
-        output_names = ['output']git
+        output_names = ['output']
 
         #Regarding reviewer 1 comment: L2 regularization
         #ToDo: Add regularization in form of weight decay 
@@ -285,7 +285,7 @@ def run_test(changes):
 def run_tests():
     # Define the number of runs and parameter that should change here. Each dict in the list represets one test run.
     change_list=[
-                 {'epochs': 15, 'num_aug': 5, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
+                 {'epochs': 5, 'num_aug': 5, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
                  #{'epochs': 5, 'num_aug': 5, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
                  #{'epochs': 5, 'num_aug': 5, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
                 ]

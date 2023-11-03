@@ -188,7 +188,7 @@ class Net256_Conv5_Fc3_B_RGB_C7(nn.Module):
 class Net256_Conv4_Fc1_B_RGB_C7(nn.Module):
     def __init__(self):
         super().__init__()
-        self.to_linear = 160 * 3 * 3
+        self.to_linear = 160 * 12 * 12
         self.conv1 = nn.Conv2d(3, 32, 5)
         self.conv2 = nn.Conv2d(32, 64, 5)
         self.conv3 = nn.Conv2d(64, 128, 5)
@@ -212,6 +212,8 @@ class Net256_Conv4_Fc1_B_RGB_C7(nn.Module):
         x = self.conv4(x)
         x = F.relu(x)
         x = F.max_pool2d(x, (2, 2))
+
+        print(f'TORCH SIZE BEFORE FC: {x.size()}')
 
         #x = x.view(-1, self.to_linear)
         x = x.flatten(start_dim=1, end_dim=- 1)
