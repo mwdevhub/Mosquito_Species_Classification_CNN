@@ -213,7 +213,7 @@ class Net256_Conv4_Fc1_B_RGB_C7(nn.Module):
         x = F.relu(x)
         x = F.max_pool2d(x, (2, 2))
 
-        print(f'TORCH SIZE BEFORE FC: {x.size()}')
+        #print(f'TORCH SIZE BEFORE FC: {x.size()}')
 
         #x = x.view(-1, self.to_linear)
         x = x.flatten(start_dim=1, end_dim=- 1)
