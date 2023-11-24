@@ -18,7 +18,7 @@ from captum.attr import IntegratedGradients
 from captum.attr import GuidedGradCam
 from captum.attr import LayerGradCam
 
-from nets import Net256_Conv5_Fc3_B_C7, Net256_Conv5_Fc3_B_RGB_C7, Hyperband_Model, Net256_Conv4_Fc1_B_RGB_C7
+from nets import Net256_Conv5_Fc3_B_C7, Net256_Conv5_Fc3_B_RGB_C7, Hyperband_Model, Net256_Conv4_Fc1_B_RGB_C7, Net256_Conv4_Fc2_B_RGB_C7
 
 import utility as uty
 import pre_processing as prep
@@ -60,11 +60,12 @@ class Run():
         self.PERCENT_FOR_VALIDATION = 15
         self.PERCENT_FOR_TESTING = 15
 
+        self.CLASS_LABELS = ['Ae albopictus right', 'Ae cinereus', 'Ae communis', 'Ae punctor', 'Ae rusticus', 'Ae sticticus', 'Ae vexans']
+
         # Use only if "CREATING_DATASETS == False" else the dataset will be overriden.
         self.TRAINING_DATA_USED = '' #'2023_10_26_20-2-12_training_28644.npy' 
         self.VALIDATION_DATA_USED = '' #'2023_10_26_20-4-34_validation_112.npy'
         self.TESTING_DATA_USED = ''
-
 
         # Use only if "TRAINING_MODEL == False" else it the model will be overriden with new model.
         self.MODEL_NAME = ''
@@ -73,6 +74,7 @@ class Run():
         self.CROPPINGX = 620
         self.CROPPINGY = 0
 
+        self.MAX_ZOOM = 1.75
         self.NUMBER_OF_AUGMENTATION = changes['num_aug']
         self.MAXIMUM_ROTATION = 15
         self.MAXIMUM_SHIFT = 20
@@ -82,7 +84,7 @@ class Run():
         self.LEARNING_RATE = changes['learning_rate']
         self.WEIGHT_DECAY = changes['weight_decay']
 
-        self.NET = Net256_Conv4_Fc1_B_RGB_C7() #Hyperband_Model() #
+        self.NET = Net256_Conv4_Fc1_B_RGB_C7() #Net256_Conv4_Fc2_B_RGB_C7() #Net256_Conv4_Fc1_B_RGB_C7() #Hyperband_Model() #
         self.NET.to(device)
 
         print('\n')
@@ -126,9 +128,9 @@ class Run():
                 'TRAINING_DATA_USED': self.TRAINING_DATA_USED,
                 'VALIDATION_DATA_USED': self.VALIDATION_DATA_USED,
                 'TESTING_DATA_USED': self.TESTING_DATA_USED,
-                'NUMBER_OF_CLASSES': 0,
-                'CLASS_LABELS': ['Ae albopictus right', 'Ae cinereus', 'Ae communis', 'Ae punctor', 'Ae rusticus', 'Ae sticticus', 'Ae vexans'],
-                'DATA_DISTRIBUTION_PER_CLASS': [],
+                'NUMBER_OF_CLASSES': len(self.CLASS_LABELS),
+                'CLASS_LABELS': self.CLASS_LABELS,
+                'DATA_DISTRIBUTION_PER_CLASS': {'train' : [], 'testing' : [], 'validation' : []},
 
                 'NUMBER_OF_TRAINING_SAMPLES': 0,
                 'NUMBER_OF_AUGMENTED_TRAINING_SAMPLES': 0,
@@ -150,12 +152,13 @@ class Run():
                 'LOSS_FUNCTION': 'k.a.',
 
                 'MODEL_NAME': self.MODEL_NAME,
-
+ 
                 'FINAL_RESOLUTION': 'k.a.',
                 'CROPPINGX': 'k.a.',
                 'CROPPINGY': 'k.a.',
 
                 'NUMBER_OF_AUGMENTATION': 'k.a.',
+                'MAX_ZOOM' : self.MAX_ZOOM,
                 'MAXIMUM_ROTATION': 'k.a.',
                 'MAXIMUM_SHIFT': 'k.a.',
 
@@ -200,6 +203,14 @@ def run_test(changes):
         validation_data = prep.import_input_data_new_rgb(run.log, directory=run.log['INPUT_DIRECTORY'], folder='validation')
         #validation_data = prep.prepare_images(run.log, validation_data, cropping_x=run.CROPPINGX, cropping_y=run.CROPPINGY, resolution=run.FINAL_RESOLUTION)
 
+        run.log['NUMBER_OF_TESTING_SAMPLES'] = len(testing_data)
+        run.log['NUMBER_OF_TRAINING_SAMPLES'] = len(training_data)
+        run.log['NUMBER_OF_VALIDATION_SAMPLES'] = len(validation_data)
+
+        run.log['PERCENT_FOR_TESTING'] = len(testing_data) / (len(testing_data) +  len(training_data) + len(validation_data))
+        run.log['PERCENT_FOR_TRAINING'] = len(training_data) / (len(testing_data) +  len(training_data) + len(validation_data))
+        run.log['PERCENT_FOR_VALIDATION'] = len(validation_data) / (len(testing_data) +  len(training_data) + len(validation_data))
+  
         
         print('DATASET CREATION')
         #training_data, validation_data, testing_data = prep.split_input_data(run.log,
@@ -234,6 +245,7 @@ def run_test(changes):
         training_data=prep.data_augmentation(run.log,
                                          training_data,
                                          num_of_augmentations=run.NUMBER_OF_AUGMENTATION,
+                                         max_zoom=run.MAX_ZOOM,
                                          max_shift=run.MAXIMUM_SHIFT,
                                          max_rotation=run.MAXIMUM_ROTATION,
                                          resolution=run.FINAL_RESOLUTION)
@@ -267,6 +279,8 @@ def run_test(changes):
         if run.log['CREATING_DATASETS'] == False:
             testing_data = uty.load_dataset(run.log['TESTING_DATA_USED'], directory=run.log['DATASET_DIRECTORY'])
 
+        print(f"USING DATASET: {run.log['TESTING_DATA_USED']}")
+
         if run.log['TESTING_MODEL_WITH_GRADCAM'] == True:
             print('START TESTING WITH GRAD CAM')
             #test.testing_cnn_gradcam_gray(run, testing_data)
@@ -278,6 +292,7 @@ def run_test(changes):
 
         print('END TESTING')
 
+    print(list(run.log.keys()), sep=',')
     uty.save_log_file(run.log)
 
 
@@ -285,9 +300,15 @@ def run_test(changes):
 def run_tests():
     # Define the number of runs and parameter that should change here. Each dict in the list represets one test run.
     change_list=[
-                 {'epochs': 15, 'num_aug': 30, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
-                 #{'epochs': 5, 'num_aug': 5, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
-                 #{'epochs': 5, 'num_aug': 5, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
+                 {'epochs': 20, 'num_aug': 30, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
+                 {'epochs': 20, 'num_aug': 30, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
+                 {'epochs': 20, 'num_aug': 30, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
+                 {'epochs': 20, 'num_aug': 30, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
+#                 {'epochs': 20, 'num_aug': 30, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
+#                 {'epochs': 25, 'num_aug': 30, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
+#                 {'epochs': 15, 'num_aug': 20, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
+#                 {'epochs': 20, 'num_aug': 20, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
+#                 {'epochs': 25, 'num_aug': 20, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
                 ]
 
     for changes in change_list:

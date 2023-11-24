@@ -144,25 +144,30 @@ def zoomImage(image, zoom_factor, resolution):
     return image
     
 
-def data_augmentation(log, dataset, num_of_augmentations=10, max_shift=20, max_rotation=15,  resolution=128):
+def data_augmentation(log, dataset, num_of_augmentations=10, max_zoom=1.0, max_shift=20, max_rotation=15, resolution=128):
     print(f'TOTAL NUMBER OF TRAINING SAMPLES BEFORE AUGMENTATION: {len(dataset)}')
     augmented_dataset = []
     for sample in dataset:
         for i in range(num_of_augmentations):
             image = sample[0]
-            M = np.float32([[1, 0, random.randint(max_shift * -1, max_shift)], [0, 1, random.randint(max_shift * -1, max_shift)]])
-            aug_image = cv2.warpAffine(image, M, (image.shape[1], image.shape[0]))
-            aug_image = rotateImage(aug_image, random.uniform(max_rotation * -1, max_rotation))
-            
+
             # Here I suggest to only enlarge the images and crop them to the final resolution.
             # Zoom without changing the image dimensions.
             # The CNN only works with images of the same dimensions.
-            aug_image = zoomImage(aug_image, random.uniform(1.0, 1.5), resolution)
+            aug_image = zoomImage(image, random.uniform(1.0, max_zoom), resolution)
+
+            M = np.float32([[1, 0, random.randint(max_shift * -1, max_shift)], [0, 1, random.randint(max_shift * -1, max_shift)]])
+            aug_image = cv2.warpAffine(aug_image, M, (image.shape[1], image.shape[0]))
+            
+            
+            aug_image = rotateImage(aug_image, random.uniform(max_rotation * -1, max_rotation))
+            
             augmented_dataset.append([aug_image, sample[1], sample[2], sample[3][:-4] + f' Aug {i}' + sample[3][-4:]])
     augmented_dataset += dataset
     print(f'TOTAL NUMBER OF TRAINING SAMPLES AFTER AUGMENTATION: {len(augmented_dataset)}')
 
     log['NUMBER_OF_AUGMENTED_TRAINING_SAMPLES'] = len(augmented_dataset)
+    log['MAX_ZOOM'] = max_zoom
     log['NUMBER_OF_AUGMENTATION'] = num_of_augmentations
     log['MAXIMUM_SHIFT'] = max_shift
     log['MAXIMUM_ROTATION'] = max_rotation
@@ -207,6 +212,7 @@ def save_output_image(log, image, name):
 
 def import_input_data_new_rgb(log, directory='01_input_images', folder='train'):
     input_data = []
+
     class_count = {}
     hitmatrix = np.eye(len(log['CLASS_LABELS']))
     num_samples = []
@@ -216,7 +222,7 @@ def import_input_data_new_rgb(log, directory='01_input_images', folder='train'):
 
     print(dir)
 
-    if folder == 'train':
+    if folder in ['train', 'testing', 'validation']:
         for label_index, label in enumerate(log['CLASS_LABELS']):
             path = os.path.join(dir, label)
             num_samples.append(len(os.listdir(path)))
@@ -248,9 +254,10 @@ def import_input_data_new_rgb(log, directory='01_input_images', folder='train'):
                 sample_class.append([image, hitmatrix[label_index], label, image_name])
                 class_count[label] += 1
                 input_data.append([image, hitmatrix[label_index], label, image_name])
-                
+        
     random.shuffle(input_data)
     print(f'FOLDER {folder}: ', class_count)
+    log['DATA_DISTRIBUTION_PER_CLASS'][folder].append(class_count)
     print('\n')
     return input_data
 

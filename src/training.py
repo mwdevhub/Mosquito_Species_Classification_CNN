@@ -110,7 +110,7 @@ def train_cnn_gray(run, training_data, validation_data):
 
     log['TRAINING_START_TIME'] = uty.timestamp()
 
-    r = 6
+    r = 8
 
     size_x, size_y = np.shape(training_data[0][0])[0], np.shape(training_data[0][0])[1]
 

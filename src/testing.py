@@ -132,6 +132,8 @@ def testing_cnn_gradcam_gray(run, testing_data):
         else:
             incorrect_prediction += 1
 
+
+
         input.requires_grad = True
 
         guided_class_idx = predicted_class_idx
@@ -240,6 +242,8 @@ def testing_cnn_rgb(run, testing_data):
 
             number_of_tests += 1
 
+        print(conf_matrix)
+
         total_accuracy = round((correct_prediction / number_of_tests) * 100, 3)
         print(f'CORRECT PREDICTION: {correct_prediction} incorrect prediction: {incorrect_prediction}')
         print(f'TOTAL ACCURACY: {total_accuracy}')
@@ -309,7 +313,12 @@ def testing_cnn_gradcam_rgb(run, testing_data):
         else:
             incorrect_prediction += 1
 
+
+        
+
         input.requires_grad = True
+
+
 
         guided_class_idx = predicted_class_idx
         attribution = ggc.attribute(input, guided_class_idx)
@@ -354,11 +363,13 @@ def testing_cnn_gradcam_rgb(run, testing_data):
 
         number_of_tests += 1
 
+    print(conf_matrix)
+
     total_accuracy = round((correct_prediction / number_of_tests) * 100, 3)
     print(f'CORRECT PREDICTION: {correct_prediction} INCORRECT PREDICTION: {incorrect_prediction}')
     print(f'TOTAL ACCURACY: {total_accuracy}')
 
-    run.log['CONFUISION_MATRIX'] = conf_matrix
+    run.log['CONFUSION_MATRIX'] = conf_matrix
     run.log['NUMBER_OF_TESTS'] = number_of_tests
 
     if correct_prediction != 0 and incorrect_prediction != 0:
