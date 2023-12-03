@@ -293,14 +293,9 @@ def run_tests():
     # Define the number of runs and parameter that should change here. Each dict in the list represets one test run.
     change_list=[
                  {'epochs': 20, 'num_aug': 30, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
-#                 {'epochs': 20, 'num_aug': 30, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
-#                 {'epochs': 20, 'num_aug': 30, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
-#                 {'epochs': 20, 'num_aug': 30, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
-#                 {'epochs': 20, 'num_aug': 30, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
-#                 {'epochs': 25, 'num_aug': 30, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
-#                 {'epochs': 15, 'num_aug': 20, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
-#                 {'epochs': 20, 'num_aug': 20, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
-#                 {'epochs': 25, 'num_aug': 20, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
+                 {'epochs': 20, 'num_aug': 30, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
+                 {'epochs': 20, 'num_aug': 30, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
+                 {'epochs': 20, 'num_aug': 30, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
                 ]
 
     for changes in change_list:
