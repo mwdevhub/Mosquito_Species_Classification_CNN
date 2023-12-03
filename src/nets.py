@@ -218,6 +218,107 @@ class Net256_Conv4_Fc1_B_RGB_C7(nn.Module):
 
         return F.softmax(x, dim=1)
 
+class Net256_Conv4_Fc1_B_GRAY_C7(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.to_linear = 160 * 12 * 12
+        self.conv1 = nn.Conv2d(1, 32, 5)
+        self.conv2 = nn.Conv2d(32, 64, 5)
+        self.conv3 = nn.Conv2d(64, 128, 5)
+        self.conv4 = nn.Conv2d(128, 160, 5)
+        self.fc1 = nn.Linear(self.to_linear, 7)
+
+    def forward(self, x):
+
+        x = self.conv1(x)
+        x = F.relu(x)
+        x = F.max_pool2d(x, (2, 2))
+
+        x = self.conv2(x)
+        x = F.relu(x)
+        x = F.max_pool2d(x, (2, 2))
+
+        x = self.conv3(x)
+        x = F.relu(x)
+        x = F.max_pool2d(x, (2, 2))
+
+        x = self.conv4(x)
+        x = F.relu(x)
+        x = F.max_pool2d(x, (2, 2))
+
+        x = x.flatten(start_dim=1, end_dim=- 1)
+        x = self.fc1(x)
+
+        return F.softmax(x, dim=1)
+
+
+class Net256_Conv4_Fc1_B_RGB_C2(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.to_linear = 160 * 12 * 12
+        self.conv1 = nn.Conv2d(3, 32, 5)
+        self.conv2 = nn.Conv2d(32, 64, 5)
+        self.conv3 = nn.Conv2d(64, 128, 5)
+        self.conv4 = nn.Conv2d(128, 160, 5)
+        self.fc1 = nn.Linear(self.to_linear, 2)
+
+    def forward(self, x):
+
+        x = self.conv1(x)
+        x = F.relu(x)
+        x = F.max_pool2d(x, (2, 2))
+
+        x = self.conv2(x)
+        x = F.relu(x)
+        x = F.max_pool2d(x, (2, 2))
+
+        x = self.conv3(x)
+        x = F.relu(x)
+        x = F.max_pool2d(x, (2, 2))
+
+        x = self.conv4(x)
+        x = F.relu(x)
+        x = F.max_pool2d(x, (2, 2))
+
+        x = x.flatten(start_dim=1, end_dim=- 1)
+        x = self.fc1(x)
+
+        return F.softmax(x, dim=1)
+
+
+class Net256_Conv4_Fc1_B_GRAY_C2(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.to_linear = 160 * 12 * 12
+        self.conv1 = nn.Conv2d(1, 32, 5)
+        self.conv2 = nn.Conv2d(32, 64, 5)
+        self.conv3 = nn.Conv2d(64, 128, 5)
+        self.conv4 = nn.Conv2d(128, 160, 5)
+        self.fc1 = nn.Linear(self.to_linear, 2)
+
+    def forward(self, x):
+
+        x = self.conv1(x)
+        x = F.relu(x)
+        x = F.max_pool2d(x, (2, 2))
+
+        x = self.conv2(x)
+        x = F.relu(x)
+        x = F.max_pool2d(x, (2, 2))
+
+        x = self.conv3(x)
+        x = F.relu(x)
+        x = F.max_pool2d(x, (2, 2))
+
+        x = self.conv4(x)
+        x = F.relu(x)
+        x = F.max_pool2d(x, (2, 2))
+
+        x = x.flatten(start_dim=1, end_dim=- 1)
+        x = self.fc1(x)
+
+        return F.softmax(x, dim=1)
+
 
 class Net256_Conv4_Fc2_B_RGB_C7(nn.Module):
     def __init__(self):

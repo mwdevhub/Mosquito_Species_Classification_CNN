@@ -30,9 +30,7 @@ def train_cnn_rgb(run, training_data, validation_data):
     LOSS_FUNCTION = run.LOSS_FUNCTION
 
     log['TRAINING_START_TIME'] = uty.timestamp()
-
-    print(uty.timestamp())
-
+    print(f'TRAINING START: {uty.timestamp()}')
     r = 6
 
     size_x, size_y = np.shape(training_data[0][0])[0], np.shape(training_data[0][0])[1]
@@ -55,7 +53,7 @@ def train_cnn_rgb(run, training_data, validation_data):
 
     epoch_count = 0
 
-    print(epochs)
+    print(f'NUMBER OF PLANNED EPOCHES: {epochs}')
     for epoch in range(epochs):
         print(f'EPOCH {epoch} STARTED AT {uty.timestamp()}')
 
@@ -80,6 +78,7 @@ def train_cnn_rgb(run, training_data, validation_data):
 
         epoch_count += 1
 
+    print(f'TRAINING END: {uty.timestamp()}')
     log['TRAINING_END_TIME'] = uty.timestamp()
 
     name = f'{uty.timestamp()}_{run.NET.__class__.__name__}_{OPTIMZER.__class__.__name__}_{LOSS_FUNCTION.__class__.__name__}_e{epochs}_b{batch_size}_lr{LEARNING_RATE}.pt'
@@ -104,13 +103,14 @@ def train_cnn_gray(run, training_data, validation_data):
     epochs = run.EPOCHS
     batch_size = run.BATCH_SIZE
     LEARNING_RATE = run.LEARNING_RATE
+    WEIGHT_DECAY = run.WEIGHT_DECAY
 
     OPTIMZER = run.OPTIMZER
     LOSS_FUNCTION = run.LOSS_FUNCTION
 
     log['TRAINING_START_TIME'] = uty.timestamp()
-
-    r = 8
+    print(f'TRAINING START: {uty.timestamp()}')
+    r = 6
 
     size_x, size_y = np.shape(training_data[0][0])[0], np.shape(training_data[0][0])[1]
 
@@ -128,9 +128,10 @@ def train_cnn_gray(run, training_data, validation_data):
 
     epoch_count = 0
 
-    print(epochs)
+    print(f'NUMBER OF PLANNED EPOCHES: {epochs}')
     for epoch in range(epochs):
-        print(f'EPOCH {epoch} STARTED')
+        print(f'EPOCH {epoch} STARTED AT {uty.timestamp()}')
+
 
         for i in range(0, len(train_x), batch_size):
 
@@ -155,6 +156,7 @@ def train_cnn_gray(run, training_data, validation_data):
         epoch_count += 1
 
     log['TRAINING_END_TIME'] = uty.timestamp()
+    log['TRAINING_END_TIME'] = uty.timestamp()
 
     name = f'{uty.timestamp()}_{run.NET.__class__.__name__}_{OPTIMZER.__class__.__name__}_{LOSS_FUNCTION.__class__.__name__}_e{epochs}_b{batch_size}_lr{LEARNING_RATE}.pt'
     path = os.path.join(log['MODEL_DIRECTROY'], name)
@@ -168,6 +170,7 @@ def train_cnn_gray(run, training_data, validation_data):
     log['EPOCHS'] = epochs
     log['BATCH_SIZE'] = batch_size
     log['LEARNING_RATE'] = LEARNING_RATE
+    log['WEIGHT_DECAY'] = WEIGHT_DECAY
 
 
 def forward_pass_training(run, batch_x, batch_y):

@@ -72,7 +72,7 @@ def testing_cnn_gray(run, testing_data):
         print(f'CORRECT PREDICTION: {correct_prediction} INCORRECT PREDICTION: {incorrect_prediction}')
         print(f'TOTAL ACCURACY: {total_accuracy}')
 
-    run.log['CONFUISION_MATRIX'] = conf_matrix
+    run.log['CONFUSION_MATRIX'] = conf_matrix
     run.log['NUMBER_OF_TESTS'] = number_of_tests
 
     if correct_prediction != 0 and incorrect_prediction != 0:
@@ -183,7 +183,7 @@ def testing_cnn_gradcam_gray(run, testing_data):
     print(f'CORRECT PREDICTION: {correct_prediction} INCORRECT PREDICTION: {incorrect_prediction}')
     print(f'TOTAL ACCURACY: {total_accuracy}')
 
-    run.log['CONFUISION_MATRIX'] = conf_matrix
+    run.log['CONFUSION_MATRIX'] = conf_matrix
     run.log['NUMBER_OF_TESTS'] = number_of_tests
 
     if correct_prediction != 0 and incorrect_prediction != 0:
@@ -248,7 +248,7 @@ def testing_cnn_rgb(run, testing_data):
         print(f'CORRECT PREDICTION: {correct_prediction} incorrect prediction: {incorrect_prediction}')
         print(f'TOTAL ACCURACY: {total_accuracy}')
 
-    run.log['CONFUISION_MATRIX'] = conf_matrix
+    run.log['CONFUSION_MATRIX'] = conf_matrix
     run.log['NUMBER_OF_TESTS'] = number_of_tests
 
     if correct_prediction != 0 and incorrect_prediction != 0:
@@ -287,6 +287,8 @@ def testing_cnn_gradcam_rgb(run, testing_data):
     number_of_tests = 0
     correct_prediction = 0
     incorrect_prediction = 0
+
+    
 
     for i in range(0, len(test_x)):
 

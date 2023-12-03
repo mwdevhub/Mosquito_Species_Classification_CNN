@@ -91,7 +91,7 @@ def double_check_data(training_data, validation_data, testing_data):
     training_set = set([i[-1] for i in training_data])
     validation_set = set([i[-1] for i in validation_data])
     testing_set = set([i[-1] for i in testing_data])
-    print(f'SAMPLES IN TRAINING AND TESTING: {len(training_set.intersection(validation_set))} (SHOULD BE 0)')
+    print(f'SAMPLES IN TRAINING AND VALIDATION: {len(training_set.intersection(validation_set))} (SHOULD BE 0)')
     print(f'SAMPLES IN TRAINING AND TESTING: {len(set(training_set).intersection(testing_set))} (SHOULD BE 0)')
     print(f'SAMPLES VALIDATION AND TESTING: {len(validation_set.intersection(testing_set))} (SHOULD BE 0)')
     print('\n')

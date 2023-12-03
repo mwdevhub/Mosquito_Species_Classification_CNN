@@ -18,7 +18,7 @@ from captum.attr import IntegratedGradients
 from captum.attr import GuidedGradCam
 from captum.attr import LayerGradCam
 
-from nets import Net256_Conv5_Fc3_B_C7, Net256_Conv5_Fc3_B_RGB_C7, Hyperband_Model, Net256_Conv4_Fc1_B_RGB_C7, Net256_Conv4_Fc2_B_RGB_C7
+from nets import Net256_Conv4_Fc2_B_RGB_C7, Net256_Conv4_Fc1_B_GRAY_C7
 
 import utility as uty
 import pre_processing as prep
@@ -50,6 +50,7 @@ class Run():
         self.TRAINING_MODEL = True
         self.TESTING_MODEL = True
         self.TESTING_MODEL_WITH_GRADCAM = True
+        self.COLOR_FLAG = cv2.IMREAD_COLOR #cv2.IMREAD_GRAYSCALE #cv2.IMREAD_COLOR
 
         self.INPUT_DIRECTORY = '01_input_split'
         self.DATASET_DIRECTORY = '02_datasets'
@@ -74,27 +75,26 @@ class Run():
         self.CROPPINGX = 620
         self.CROPPINGY = 0
 
-        self.MAX_ZOOM = 1.75
+        self.MAX_ZOOM = 2.0
         self.NUMBER_OF_AUGMENTATION = changes['num_aug']
         self.MAXIMUM_ROTATION = 15
         self.MAXIMUM_SHIFT = 20
+        self.MAXIMUM_CROP = 0.9
 
         self.EPOCHS = changes['epochs']
         self.BATCH_SIZE = changes['batch_size']
         self.LEARNING_RATE = changes['learning_rate']
         self.WEIGHT_DECAY = changes['weight_decay']
 
-        self.NET = Net256_Conv4_Fc1_B_RGB_C7() #Net256_Conv4_Fc2_B_RGB_C7() #Net256_Conv4_Fc1_B_RGB_C7() #Hyperband_Model() #
+        self.NET = Net256_Conv4_Fc1_B_RGB_C7() #Net256_Conv4_Fc1_B_GRAY_C7()
         self.NET.to(device)
 
         print('\n')
         input_names = ['input']
         output_names = ['output']
 
-        #Regarding reviewer 1 comment: L2 regularization
-        #ToDo: Add regularization in form of weight decay 
+        #Regarding reviewer 1 comment: L2 regularization WEIGHT_DECAY
         self.OPTIMZER = optim.Adam(self.NET.parameters(), lr=self.LEARNING_RATE, weight_decay=self.WEIGHT_DECAY) 
-        #self.OPTIMZER = optim.Adam(self.NET.parameters(), lr=self.LEARNING_RATE)
         self.LOSS_FUNCTION = nn.MSELoss()
 
         self.log = self.create_log_dict()
@@ -102,7 +102,6 @@ class Run():
 
     def create_log_dict(self):
         # Creates a log dictionary to track settings, training and testing steps. The log is updated during a run and saved afterwards.
-        
         timestamp = uty.timestamp()
         log = {
                 'NAME': f'{timestamp}_mcc',
@@ -120,6 +119,7 @@ class Run():
                 'MODEL_DIRECTROY': self.MODEL_DIRECTROY,
                 'OUTPUT_DIRECTORY': self.OUTPUT_DIRECTORY,
                 'OUTPUT_PATH': os.path.join(self.OUTPUT_DIRECTORY, f'{timestamp}_mcc_{self.NET.__class__.__name__}'),
+                'COLOR FLAG' : self.COLOR_FLAG,
 
                 'PERCENT_FOR_TRAINING': 'k.a.',
                 'PERCENT_FOR_VALIDATION': 'k.a.',
@@ -158,9 +158,10 @@ class Run():
                 'CROPPINGY': 'k.a.',
 
                 'NUMBER_OF_AUGMENTATION': 'k.a.',
-                'MAX_ZOOM' : self.MAX_ZOOM,
+                'MAX_ZOOM' : 'k.a.',
                 'MAXIMUM_ROTATION': 'k.a.',
                 'MAXIMUM_SHIFT': 'k.a.',
+                'MAXIMUM_CROP' : 'k.a.',
 
                 'EPOCHS': 'k.a.',
                 'BATCH_SIZE': 'k.a.',
@@ -177,7 +178,6 @@ class Run():
 
 
 def run_test(changes):
-    # Note: To switch between gray scale and rgb images un/comment the according functions
 
     print(f'\n\nRUN {changes}')
 
@@ -190,18 +190,10 @@ def run_test(changes):
     if run.log['CREATING_DATASETS'] == True:
 
         print('DATA IMPORT')
-        #input_data = prep.import_input_data_gray(run.log, directory=run.log['INPUT_DIRECTORY'])
-        #input_data = prep.import_input_data_rgb(run.log, directory=run.log['INPUT_DIRECTORY'])
-
-
-        testing_data = prep.import_input_data_new_rgb(run.log, directory=run.log['INPUT_DIRECTORY'], folder='testing')
-        #testing_data = prep.prepare_images(run.log, testing_data, cropping_x=run.CROPPINGX, cropping_y=run.CROPPINGY, resolution=run.FINAL_RESOLUTION)
-
-        training_data = prep.import_input_data_new_rgb(run.log, directory=run.log['INPUT_DIRECTORY'], folder='train')
-        #training_data = prep.prepare_images(run.log, training_data, cropping_x=run.CROPPINGX, cropping_y=run.CROPPINGY, resolution=run.FINAL_RESOLUTION)
-
-        validation_data = prep.import_input_data_new_rgb(run.log, directory=run.log['INPUT_DIRECTORY'], folder='validation')
-        #validation_data = prep.prepare_images(run.log, validation_data, cropping_x=run.CROPPINGX, cropping_y=run.CROPPINGY, resolution=run.FINAL_RESOLUTION)
+ 
+        testing_data = prep.import_input_data_new(run.log, directory=run.log['INPUT_DIRECTORY'], folder='testing', flag=run.COLOR_FLAG)
+        training_data = prep.import_input_data_new(run.log, directory=run.log['INPUT_DIRECTORY'], folder='train', flag=run.COLOR_FLAG)
+        validation_data = prep.import_input_data_new(run.log, directory=run.log['INPUT_DIRECTORY'], folder='validation', flag=run.COLOR_FLAG)
 
         run.log['NUMBER_OF_TESTING_SAMPLES'] = len(testing_data)
         run.log['NUMBER_OF_TRAINING_SAMPLES'] = len(training_data)
@@ -211,15 +203,7 @@ def run_test(changes):
         run.log['PERCENT_FOR_TRAINING'] = len(training_data) / (len(testing_data) +  len(training_data) + len(validation_data))
         run.log['PERCENT_FOR_VALIDATION'] = len(validation_data) / (len(testing_data) +  len(training_data) + len(validation_data))
   
-        
         print('DATASET CREATION')
-        #training_data, validation_data, testing_data = prep.split_input_data(run.log,
-        #                                                                     input_data,
-        #                                                                     training=run.PERCENT_FOR_TRAINING,
-        #                                                                     validation=run.PERCENT_FOR_VALIDATION,
-        #                                                                    testing=run.PERCENT_FOR_TESTING)
-
-
 
         uty.double_check_data(training_data, validation_data, testing_data)
 
@@ -248,6 +232,7 @@ def run_test(changes):
                                          max_zoom=run.MAX_ZOOM,
                                          max_shift=run.MAXIMUM_SHIFT,
                                          max_rotation=run.MAXIMUM_ROTATION,
+                                         max_crop=run.MAXIMUM_CROP,
                                          resolution=run.FINAL_RESOLUTION)
 
         training_data=prep.shuffle_dataset(training_data)
@@ -268,8 +253,12 @@ def run_test(changes):
         print(f"USING DATASET: {run.log['TRAINING_DATA_USED']}")
         print(f"USING DATASET: {run.log['VALIDATION_DATA_USED']}")
         print('MODEL GETS TRAINED')
-        #train.train_cnn_gray(run, training_data, validation_data)
-        train.train_cnn_rgb(run, training_data, validation_data)
+
+
+        if run.COLOR_FLAG == 1:
+            train.train_cnn_rgb(run, training_data, validation_data)
+        else:
+            train.train_cnn_gray(run, training_data, validation_data)
 
         print('TRAINING COMPLETED \n')
 
@@ -283,13 +272,17 @@ def run_test(changes):
 
         if run.log['TESTING_MODEL_WITH_GRADCAM'] == True:
             print('START TESTING WITH GRAD CAM')
-            #test.testing_cnn_gradcam_gray(run, testing_data)
-            test.testing_cnn_gradcam_rgb(run, testing_data)
+            if run.COLOR_FLAG == 1:
+                test.testing_cnn_gradcam_rgb(run, testing_data)
+            else:
+                test.testing_cnn_gradcam_gray(run, testing_data)
         else:
             print('START TESTING')
-            #test.testing_cnn_gray(run, testing_data)
-            test.testing_cnn_rgb(run, testing_data)
-
+            if run.COLOR_FLAG == 1:
+                test.testing_cnn_rgb(run, testing_data)
+            else:
+                test.testing_cnn_gray(run, testing_data)
+            
         print('END TESTING')
 
     print(list(run.log.keys()), sep=',')
@@ -301,9 +294,9 @@ def run_tests():
     # Define the number of runs and parameter that should change here. Each dict in the list represets one test run.
     change_list=[
                  {'epochs': 20, 'num_aug': 30, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
-                 {'epochs': 20, 'num_aug': 30, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
-                 {'epochs': 20, 'num_aug': 30, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
-                 {'epochs': 20, 'num_aug': 30, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
+#                 {'epochs': 20, 'num_aug': 30, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
+#                 {'epochs': 20, 'num_aug': 30, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
+#                 {'epochs': 20, 'num_aug': 30, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
 #                 {'epochs': 20, 'num_aug': 30, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
 #                 {'epochs': 25, 'num_aug': 30, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},
 #                 {'epochs': 15, 'num_aug': 20, 'learning_rate': 0.00015, 'weight_decay': 0.0005, 'batch_size': 100},

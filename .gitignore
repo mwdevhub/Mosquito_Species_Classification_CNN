@@ -162,6 +162,7 @@ cython_debug/
 00_input_Aedes_NoAedes
 01_input_images
 01_input_split
+01_input_split_Aedes_NoAedes
 02_datasets
 03_trained_models
 04_output
